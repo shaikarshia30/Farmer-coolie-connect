@@ -5,7 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Tractor, Users, Wrench, MapPin, Shield } from "lucide-react";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
+import { Tractor, Users, Wrench, MapPin, Shield, Smartphone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 type AuthMode = "login" | "register";
@@ -20,28 +25,51 @@ export default function AuthPage({ mode, defaultRole = "farmer" }: AuthPageProps
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const [role, setRole] = useState<UserRole>(defaultRole);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otp, setOtp] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
     location: "",
-    password: "",
     farmSize: "",
     vehicleType: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSendOTP = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Auth submitted:", { mode, role, formData });
+    console.log("Sending OTP to:", formData.phone);
     
+    // Simulate OTP sending
     toast({
-      title: mode === "login" ? "Login successful!" : "Registration successful!",
-      description: `Welcome to Former Code Connect as a ${role}`,
+      title: "OTP Sent!",
+      description: `Verification code sent to ${formData.phone}`,
     });
+    
+    setOtpSent(true);
+  };
 
-    // Navigate to appropriate dashboard
-    setTimeout(() => {
-      navigate(`/dashboard/${role}`);
-    }, 1000);
+  const handleVerifyOTP = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Verifying OTP:", otp, { mode, role, formData });
+    
+    // Simulate OTP verification
+    if (otp.length === 6) {
+      toast({
+        title: mode === "login" ? "Login successful!" : "Registration successful!",
+        description: `Welcome to Former Code Connect as a ${role}`,
+      });
+
+      // Navigate to appropriate dashboard
+      setTimeout(() => {
+        navigate(`/dashboard/${role}`);
+      }, 1000);
+    } else {
+      toast({
+        title: "Invalid OTP",
+        description: "Please enter a valid 6-digit code",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleGetLocation = () => {
@@ -66,10 +94,17 @@ export default function AuthPage({ mode, defaultRole = "farmer" }: AuthPageProps
     }
   };
 
-  const roleConfig = {
-    farmer: { icon: Tractor, label: "Farmer" },
-    coolie: { icon: Users, label: "Worker" },
-    rental: { icon: Wrench, label: "Equipment Provider" },
+  const handleResendOTP = () => {
+    console.log("Resending OTP to:", formData.phone);
+    toast({
+      title: "OTP Resent!",
+      description: `New verification code sent to ${formData.phone}`,
+    });
+  };
+
+  const handleChangePhone = () => {
+    setOtpSent(false);
+    setOtp("");
   };
 
   return (
@@ -84,148 +119,195 @@ export default function AuthPage({ mode, defaultRole = "farmer" }: AuthPageProps
             {mode === "login" ? "Welcome Back" : "Create Your Account"}
           </CardTitle>
           <CardDescription className="text-center">
-            {mode === "login"
-              ? "Sign in to access your dashboard"
+            {otpSent
+              ? `Enter the verification code sent to ${formData.phone}`
+              : mode === "login"
+              ? "Sign in using your phone number"
               : "Join our agricultural community today"}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs value={role} onValueChange={(v) => setRole(v as UserRole)} className="mb-6">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="farmer" className="gap-1" data-testid="tab-farmer">
-                <Tractor className="h-4 w-4" />
-                <span className="hidden sm:inline">Farmer</span>
-              </TabsTrigger>
-              <TabsTrigger value="coolie" className="gap-1" data-testid="tab-coolie">
-                <Users className="h-4 w-4" />
-                <span className="hidden sm:inline">Worker</span>
-              </TabsTrigger>
-              <TabsTrigger value="rental" className="gap-1" data-testid="tab-rental">
-                <Wrench className="h-4 w-4" />
-                <span className="hidden sm:inline">Provider</span>
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
+          {!otpSent ? (
+            <>
+              <Tabs value={role} onValueChange={(v) => setRole(v as UserRole)} className="mb-6">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="farmer" className="gap-1" data-testid="tab-farmer">
+                    <Tractor className="h-4 w-4" />
+                    <span className="hidden sm:inline">Farmer</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="coolie" className="gap-1" data-testid="tab-coolie">
+                    <Users className="h-4 w-4" />
+                    <span className="hidden sm:inline">Worker</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="rental" className="gap-1" data-testid="tab-rental">
+                    <Wrench className="h-4 w-4" />
+                    <span className="hidden sm:inline">Provider</span>
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {mode === "register" && (
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
-                  placeholder="Enter your full name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  required
-                  data-testid="input-name"
-                />
-              </div>
-            )}
+              <form onSubmit={handleSendOTP} className="space-y-4">
+                {mode === "register" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Full Name</Label>
+                    <Input
+                      id="name"
+                      placeholder="Enter your full name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      required
+                      data-testid="input-name"
+                    />
+                  </div>
+                )}
 
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
-              <Input
-                id="phone"
-                type="tel"
-                placeholder="+1 (555) 000-0000"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                required
-                data-testid="input-phone"
-              />
-            </div>
-
-            {mode === "register" && (
-              <div className="space-y-2">
-                <Label htmlFor="location">Location</Label>
-                <div className="flex gap-2">
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone Number</Label>
                   <Input
-                    id="location"
-                    placeholder="Enter your location"
-                    value={formData.location}
-                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                    id="phone"
+                    type="tel"
+                    placeholder="+1 (555) 000-0000"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     required
-                    data-testid="input-location"
+                    data-testid="input-phone"
                   />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={handleGetLocation}
-                    data-testid="button-get-location"
+                </div>
+
+                {mode === "register" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="location">Location</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="location"
+                        placeholder="Enter your location"
+                        value={formData.location}
+                        onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                        required
+                        data-testid="input-location"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={handleGetLocation}
+                        data-testid="button-get-location"
+                      >
+                        <MapPin className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {mode === "register" && role === "farmer" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="farmSize">Farm Size (acres)</Label>
+                    <Input
+                      id="farmSize"
+                      type="number"
+                      placeholder="e.g., 50"
+                      value={formData.farmSize}
+                      onChange={(e) => setFormData({ ...formData, farmSize: e.target.value })}
+                      data-testid="input-farm-size"
+                    />
+                  </div>
+                )}
+
+                {mode === "register" && role === "rental" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="vehicleType">Primary Vehicle/Equipment Type</Label>
+                    <Input
+                      id="vehicleType"
+                      placeholder="e.g., Tractor, Harvester"
+                      value={formData.vehicleType}
+                      onChange={(e) => setFormData({ ...formData, vehicleType: e.target.value })}
+                      data-testid="input-vehicle-type"
+                    />
+                  </div>
+                )}
+
+                <Button type="submit" className="w-full" data-testid="button-send-otp">
+                  <Smartphone className="mr-2 h-4 w-4" />
+                  Send OTP
+                </Button>
+              </form>
+            </>
+          ) : (
+            <form onSubmit={handleVerifyOTP} className="space-y-6">
+              <div className="space-y-2">
+                <Label className="text-center block">Enter 6-Digit OTP</Label>
+                <div className="flex justify-center">
+                  <InputOTP
+                    maxLength={6}
+                    value={otp}
+                    onChange={setOtp}
+                    data-testid="input-otp"
                   >
-                    <MapPin className="h-4 w-4" />
-                  </Button>
+                    <InputOTPGroup>
+                      <InputOTPSlot index={0} />
+                      <InputOTPSlot index={1} />
+                      <InputOTPSlot index={2} />
+                      <InputOTPSlot index={3} />
+                      <InputOTPSlot index={4} />
+                      <InputOTPSlot index={5} />
+                    </InputOTPGroup>
+                  </InputOTP>
                 </div>
               </div>
-            )}
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                required
-                data-testid="input-password"
-              />
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={otp.length !== 6}
+                data-testid="button-verify-otp"
+              >
+                Verify & Continue
+              </Button>
+
+              <div className="flex flex-col gap-2 text-center text-sm">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={handleResendOTP}
+                  data-testid="button-resend-otp"
+                >
+                  Resend OTP
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={handleChangePhone}
+                  data-testid="button-change-phone"
+                >
+                  Change Phone Number
+                </Button>
+              </div>
+            </form>
+          )}
+
+          {!otpSent && (
+            <div className="mt-6 text-center text-sm">
+              {mode === "login" ? (
+                <p className="text-muted-foreground">
+                  Don't have an account?{" "}
+                  <a href="/register" className="text-primary hover:underline">
+                    Sign up
+                  </a>
+                </p>
+              ) : (
+                <p className="text-muted-foreground">
+                  Already have an account?{" "}
+                  <a href="/login" className="text-primary hover:underline">
+                    Sign in
+                  </a>
+                </p>
+              )}
             </div>
-
-            {mode === "register" && role === "farmer" && (
-              <div className="space-y-2">
-                <Label htmlFor="farmSize">Farm Size (acres)</Label>
-                <Input
-                  id="farmSize"
-                  type="number"
-                  placeholder="e.g., 50"
-                  value={formData.farmSize}
-                  onChange={(e) => setFormData({ ...formData, farmSize: e.target.value })}
-                  data-testid="input-farm-size"
-                />
-              </div>
-            )}
-
-            {mode === "register" && role === "rental" && (
-              <div className="space-y-2">
-                <Label htmlFor="vehicleType">Primary Vehicle/Equipment Type</Label>
-                <Input
-                  id="vehicleType"
-                  placeholder="e.g., Tractor, Harvester"
-                  value={formData.vehicleType}
-                  onChange={(e) => setFormData({ ...formData, vehicleType: e.target.value })}
-                  data-testid="input-vehicle-type"
-                />
-              </div>
-            )}
-
-            <Button type="submit" className="w-full" data-testid="button-submit">
-              {mode === "login" ? "Sign In" : "Create Account"}
-            </Button>
-          </form>
-
-          <div className="mt-6 text-center text-sm">
-            {mode === "login" ? (
-              <p className="text-muted-foreground">
-                Don't have an account?{" "}
-                <a href="/register" className="text-primary hover:underline">
-                  Sign up
-                </a>
-              </p>
-            ) : (
-              <p className="text-muted-foreground">
-                Already have an account?{" "}
-                <a href="/login" className="text-primary hover:underline">
-                  Sign in
-                </a>
-              </p>
-            )}
-          </div>
+          )}
 
           <div className="mt-6 flex items-center justify-center gap-2 rounded-md bg-muted/50 p-3 text-xs text-muted-foreground">
             <Shield className="h-4 w-4" />
-            <span>Your data is secure and encrypted</span>
+            <span>Secure OTP authentication</span>
           </div>
         </CardContent>
       </Card>
