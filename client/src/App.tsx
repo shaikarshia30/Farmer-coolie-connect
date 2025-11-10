@@ -10,6 +10,9 @@ import DashboardLayout from "@/components/DashboardLayout";
 import FarmerDashboard from "@/components/FarmerDashboard";
 import CoolieDashboard from "@/components/CoolieDashboard";
 import RentalDashboard from "@/components/RentalDashboard";
+import ChatWidget from "./components/ChatWidget"; 
+
+
 
 function Router() {
   return (
@@ -25,13 +28,14 @@ function Router() {
           return <AuthPage mode="register" defaultRole={role} />;
         }}
       </Route>
-      <Route path="/dashboard/farmer">
+       <Route path="/dashboard/farmer">
         {() => (
           <DashboardLayout userRole="farmer" userName="John Farmer">
             <FarmerDashboard />
           </DashboardLayout>
         )}
-      </Route>
+      </Route> 
+      
       <Route path="/dashboard/coolie">
         {() => (
           <DashboardLayout userRole="coolie" userName="Mike Worker">
@@ -57,6 +61,9 @@ function App() {
       <TooltipProvider>
         <Toaster />
         <Router />
+
+        <ChatWidget />  {/* <-- ADD THIS LINE HERE */}
+
       </TooltipProvider>
     </QueryClientProvider>
   );

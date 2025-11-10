@@ -45,9 +45,9 @@ export default function DashboardLayout({ children, userRole, userName = "User" 
   const menuItems = {
     farmer: [
       { title: "Dashboard", icon: LayoutDashboard, url: "/dashboard/farmer" },
-      { title: "My Jobs", icon: Briefcase, url: "/dashboard/farmer/jobs" },
-      { title: "Equipment Rentals", icon: Wrench, url: "/dashboard/farmer/equipment" },
-      { title: "Settings", icon: Settings, url: "/dashboard/farmer/settings" },
+      { title: "My Jobs", icon: Briefcase, url: "/dashboard/farmer" },
+      { title: "Equipment Rentals", icon: Wrench, url: "/dashboard/farmer" },
+      { title: "Settings", icon: Settings, url: "/dashboard/farmer" },
     ],
     coolie: [
       { title: "Find Jobs", icon: LayoutDashboard, url: "/dashboard/coolie" },

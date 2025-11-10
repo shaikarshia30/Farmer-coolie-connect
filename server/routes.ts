@@ -4,6 +4,8 @@ import session from "express-session";
 import { storage } from "./storage";
 import { insertUserSchema, insertJobSchema, insertEquipmentSchema, insertJobApplicationSchema } from "@shared/schema";
 import { z } from "zod";
+import fetch from "node-fetch";
+
 
 // Helper function to generate 6-digit OTP
 function generateOTP(): string {
@@ -379,4 +381,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
 
   return httpServer;
+}
+// ---- CHAT ROUTE ----
+export async function chatHandler(req, res) {
+  try {
+    const { messages } = req.body;
+
+    const r = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: "Reply in the same language as user." },
+          ...messages,
+        ],
+      }),
+    });
+
+    const data = await r.json();
+    console.log("OPENAI RESPONSE:", data);
+    return res.json({ reply: data.choices[0].message.content });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
 }
